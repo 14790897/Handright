@@ -37,6 +37,7 @@ class Template(object):
         "_strikethrough_width_sigma",
         "_strikethrough_probability",
         "_strikethrough_width",
+        '_ink_depth_sigma',
         "_features",
     )
 
@@ -83,6 +84,7 @@ class Template(object):
             strikethrough_width_sigma: Optional[float]=None,
             strikethrough_probability: float = _DEFAULT_strikethrough_probability,
             strikethrough_width: Optional[float]=None,
+            ink_depth_sigma: Optional[float]=None,
             features: Set = _DEFAULT_FEATURES,
     ):
         """Note that, all the Integer parameters are in pixels.
@@ -137,6 +139,7 @@ class Template(object):
         self.set_strikethrough_width_sigma(strikethrough_width_sigma)
         self.set_strikethrough_probability(strikethrough_probability)
         self.set_strikethrough_width(strikethrough_width)
+        self.set_ink_depth_sigma(ink_depth_sigma)
         self.set_features(features)
 
     def __eq__(self, other) -> bool:
@@ -296,6 +299,14 @@ class Template(object):
     )-> None:
         self._strikethrough_angle_sigma = strikethrough_angle_sigma
         
+    def set_ink_depth_sigma(
+        self, ink_depth_sigma: Optional[float] = None
+    ) -> None:
+        if ink_depth_sigma is None:
+            self._ink_depth_sigma = self._font.size / 1.5
+        else:
+            self._ink_depth_sigma = ink_depth_sigma
+        
     def get_background(self) -> PIL.Image.Image:
         return self._background
 
@@ -365,8 +376,11 @@ class Template(object):
     def get_strikethrough_width(self):
         return self._strikethrough_width
 
+    def get_ink_depth_sigma(self):
+        return self._ink_depth_sigma
+    
     def get_size(self) -> Tuple[int, int]:
-        return self.get_background().size
+        return self.get_background().size 
 
     def release_font_resource(self) -> None:
         """This method should be called before pickling corresponding instances.
