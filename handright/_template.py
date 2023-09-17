@@ -303,7 +303,7 @@ class Template(object):
         self, ink_depth_sigma: Optional[float] = None
     ) -> None:
         if ink_depth_sigma is None:
-            self._ink_depth_sigma = self._font.size / 1.5
+            self._ink_depth_sigma = self._font.size / 1.8
         else:
             self._ink_depth_sigma = ink_depth_sigma
         

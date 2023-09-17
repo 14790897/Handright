@@ -8,15 +8,15 @@ import handright
 
 def main():
     setuptools.setup(
-        name=handright.__name__,
+        name='handrightbeta',
         version=handright.__version__,
         description="A lightweight Python library for simulating Chinese handwriting",
         license="bsd-3-clause",
         author="Chenghui Li (Gsllchb)",
-        author_email="Gsllchb@qq.com",
+        author_email="14790897abc@gmail.com",
         python_requires=">= 3.8",
         keywords="simulating Chinese handwriting",
-        url="https://github.com/Gsllchb/Handright",
+        url="https://github.com/14790897/Handright",
         long_description_content_type="text/markdown",
         long_description=get_long_description(),
         zip_safe=True,

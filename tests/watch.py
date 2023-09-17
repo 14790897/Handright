@@ -11,10 +11,10 @@ SEED = "Handright"
 
 def main():
     print("Test by naked eyes:")
-    _watch_gird_layout()
-    _like_it()
+    # _watch_gird_layout()
+    # _like_it()
     _watch_flow_layout()
-    _like_it()
+    # _like_it()
 
 
 def _watch_flow_layout():
@@ -32,6 +32,7 @@ def _watch_flow_layout():
         bottom_margin=560,
         line_spacing=88,
         font=get_default_font(74),
+        ink_depth_sigma=100,
     )
     template2 = Template(
         background=image2.resize(size=(image2.size[0] * 2, image2.size[1] * 2)),
@@ -66,6 +67,7 @@ def _watch_gird_layout():
         font_size_sigma=0.3,
         word_spacing_sigma=0.8,
         line_spacing_sigma=1,
+        # ink_depth_sigma=0,
         features={Feature.GRID_LAYOUT},
     )
     with open(abs_path("texts/荷塘月色.txt"), encoding="utf-8") as f:
