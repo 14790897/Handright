@@ -46,7 +46,7 @@ def _watch_flow_layout():
     templates = (template1, template2)
     with open(abs_path("texts/从百草园到三味书屋.txt"), encoding="utf-8") as f:
         text = f.read()
-    images = handwrite(text, templates, seed=SEED)
+    images = handwrite(text, templates, seed=SEED,save_to_file=True, export_pdf=True)
     for im in images:
         im.show()
 

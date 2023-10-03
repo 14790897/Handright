@@ -21,3 +21,4 @@ __pycache__/
 .mypy_cache
 *.exe
 /hand0/
+*.pdf
