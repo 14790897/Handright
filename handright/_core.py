@@ -63,12 +63,9 @@ def handwrite(
         first_image = images_list[0]
         remaining_images = images_list[1:]
         first_image.save(
-            pdf_bytes,
-            format="PDF",
-            save_all=True,
-            append_images=remaining_images
+            pdf_bytes, format="PDF", save_all=True, append_images=remaining_images
         )
-        
+
         if save_to_file:
             # 如果 save_to_file 为 True，则保存到文件
             pdf_bytes.seek(0)  # 将指针移动到流的开头
@@ -78,8 +75,8 @@ def handwrite(
         else:
             pdf_bytes.seek(0)
             return pdf_bytes  # 返回 PDF 的字节流
-        
-    return images 
+
+    return images
 
 
 def _draft(text, templates, seed=None) -> Iterator[Page]:
@@ -100,15 +97,17 @@ def _preprocess_text(text: str) -> str:
 
 
 def _check_template(page, tpl) -> None:
-    if page.height() < (tpl.get_top_margin() + tpl.get_line_spacing()
-                        + tpl.get_bottom_margin()):
+    if page.height() < (
+        tpl.get_top_margin() + tpl.get_line_spacing() + tpl.get_bottom_margin()
+    ):
         msg = "for (height < top_margin + line_spacing + bottom_margin)"
         raise LayoutError(msg)
     if tpl.get_font().size > tpl.get_line_spacing():
         msg = "for (font.size > line_spacing)"
         raise LayoutError(msg)
-    if page.width() < (tpl.get_left_margin() + tpl.get_font().size
-                       + tpl.get_right_margin()):
+    if page.width() < (
+        tpl.get_left_margin() + tpl.get_font().size + tpl.get_right_margin()
+    ):
         msg = "for (width < left_margin + font.size + right_margin)"
         raise LayoutError(msg)
     if tpl.get_word_spacing() <= -tpl.get_font().size // 2:
@@ -116,9 +115,7 @@ def _check_template(page, tpl) -> None:
         raise LayoutError(msg)
 
 
-def _draw_page(
-        page, text, start: int, tpl: Template, rand: random.Random
-) -> int:
+def _draw_page(page, text, start: int, tpl: Template, rand: random.Random) -> int:
     _check_template(page, tpl)
 
     width = page.width()
@@ -137,28 +134,26 @@ def _draw_page(
     while y <= height - bottom_margin - font_size:
         x = left_margin
         while True:
-            if text[start] == _LF: #跳过换行符自己处理
+            if text[start] == _LF:  # 跳过换行符自己处理
                 start += 1
                 if start == len(text):
                     return start
                 break
-            if (x > width - right_margin - 2 * font_size
-                    and text[start] in start_chars):
+            if x > width - right_margin - 2 * font_size and text[start] in start_chars:
                 break
-            if (x > width - right_margin - font_size
-                    and text[start] not in end_chars):
+            if x > width - right_margin - font_size and text[start] not in end_chars:
                 break
-            
-             # 随机选择一个字符进行替换 9.1
+
+            # 随机选择一个字符进行替换 9.1
             if rand.random() < tpl.get_strikethrough_probability():
                 wrong_char_index = random.randint(0, len(text) - 1)
-                wrong_end_chars = end_chars + ' '
+                wrong_end_chars = end_chars + " "
                 # 检查字符是否在排除列表中
                 while text[wrong_char_index] in wrong_end_chars:
                     wrong_char_index = random.randint(0, len(text) - 1)
                 wrong_char = text[wrong_char_index]
-                
-                origin_x =x
+
+                origin_x = x
                 # 绘制错误的字（被划掉的字）
                 if Feature.GRID_LAYOUT in tpl.get_features():
                     x = _grid_layout(draw, x, y, wrong_char, tpl, rand)
@@ -166,8 +161,8 @@ def _draw_page(
                     x = _flow_layout(draw, x, y, wrong_char, tpl, rand)
                 # 添加涂改标记（斜线）
                 _draw_strikethrough(draw, origin_x, y, tpl, rand)
-                
-            # 绘制正确的字            
+
+            # 绘制正确的字
             if Feature.GRID_LAYOUT in tpl.get_features():
                 x = _grid_layout(draw, x, y, text[start], tpl, rand)
             else:
@@ -178,55 +173,49 @@ def _draw_page(
         y += line_spacing
     return start
 
+
 def _draw_strikethrough(draw, x, y, tpl, rand):
     line_length = tpl.get_font().size * math.sqrt(2)
     length_sigma = tpl.get_strikethrough_length_sigma()
     angle_sigma = tpl.get_strikethrough_angle_sigma()
     width_sigma = tpl.get_strikethrough_width_sigma()
     line_width = tpl.get_strikethrough_width()
-    
-    start_x = x + 1/7*line_length
-    start_y = y + 1/7*line_length
+
+    start_x = x + 1 / 7 * line_length
+    start_y = y + 1 / 7 * line_length
     # 添加扰动
     actual_length = line_length + gauss(rand, 0, length_sigma)
     initial_angle = 45  # 初始角度设置为45度
     actual_angle = initial_angle + gauss(rand, 0, angle_sigma)
     actual_width = line_width + gauss(rand, 0, width_sigma)  # 假设基础宽度为5
-    
-    end_x = start_x + actual_length * math.cos(math.radians(actual_angle))*5/7
-    end_y = start_y + actual_length * math.sin(math.radians(actual_angle))*5/7
+
+    end_x = start_x + actual_length * math.cos(math.radians(actual_angle)) * 5 / 7
+    end_y = start_y + actual_length * math.sin(math.radians(actual_angle)) * 5 / 7
     draw.line((start_x, start_y, end_x, end_y), fill=_WHITE, width=int(actual_width))
 
-def _flow_layout(
-        draw, x, y, char, tpl: Template, rand: random.Random
-) -> float:
+
+def _flow_layout(draw, x, y, char, tpl: Template, rand: random.Random) -> float:
     xy = (round(x), round(gauss(rand, y, tpl.get_line_spacing_sigma())))
     font = _get_font(tpl, rand)
     offset = _draw_char(draw, char, xy, font)
-    x += gauss(
-        rand,
-        tpl.get_word_spacing() + offset,
-        tpl.get_word_spacing_sigma()
-    )
+    x += gauss(rand, tpl.get_word_spacing() + offset, tpl.get_word_spacing_sigma())
     return x
 
 
-def _grid_layout(
-        draw, x, y, char, tpl: Template, rand: random.Random
-) -> float:
-    xy = (round(gauss(rand, x, tpl.get_word_spacing_sigma())),
-          round(gauss(rand, y, tpl.get_line_spacing_sigma())))
+def _grid_layout(draw, x, y, char, tpl: Template, rand: random.Random) -> float:
+    xy = (
+        round(gauss(rand, x, tpl.get_word_spacing_sigma())),
+        round(gauss(rand, y, tpl.get_line_spacing_sigma())),
+    )
     font = _get_font(tpl, rand)
     _ = _draw_char(draw, char, xy, font)
-    x += tpl.get_word_spacing() + tpl.get_font().size#主要的区别在于这里的X它是固定的
+    x += tpl.get_word_spacing() + tpl.get_font().size  # 主要的区别在于这里的X它是固定的
     return x
 
 
 def _get_font(tpl: Template, rand: random.Random):
     font = tpl.get_font()
-    actual_font_size = max(round(
-        gauss(rand, font.size, tpl.get_font_size_sigma())
-    ), 0)
+    actual_font_size = max(round(gauss(rand, font.size, tpl.get_font_size_sigma())), 0)
     if actual_font_size != font.size:
         return font.font_variant(size=actual_font_size)
     return font
@@ -296,10 +285,7 @@ def _extract_strokes(bitmap, bbox: Tuple[int, int, int, int]):
             _MAX_INT16_VALUE - 1
         )
         raise BackgroundTooLargeError(msg)
-    strokes = NumericOrderedSet(
-        _UNSIGNED_INT32_TYPECODE,
-        privileged=_STROKE_END
-    )
+    strokes = NumericOrderedSet(_UNSIGNED_INT32_TYPECODE, privileged=_STROKE_END)
     for y in range(upper, lower):
         for x in range(left, right):
             if bitmap[x, y] and strokes.add(_xy(x, y)):
@@ -309,13 +295,15 @@ def _extract_strokes(bitmap, bbox: Tuple[int, int, int, int]):
 
 
 def _extract_stroke(
-        bitmap, start: Tuple[int, int], strokes, bbox: Tuple[int, int, int, int]
+    bitmap, start: Tuple[int, int], strokes, bbox: Tuple[int, int, int, int]
 ) -> None:
     """Helper function of _extract_strokes() which uses depth first search to
     find the pixels of a glyph. 修改了传入的 strokes 参数"""
     left, upper, right, lower = bbox
-    stack = [start, ]
-    while stack:#白色是1，為true
+    stack = [
+        start,
+    ]
+    while stack:  # 白色是1，為true
         x, y = stack.pop()
         if y - 1 >= upper and bitmap[x, y - 1] and strokes.add(_xy(x, y - 1)):
             stack.append((x, y - 1))
@@ -352,16 +340,16 @@ def _draw_strokes(bitmap, strokes, tpl, rand) -> None:
 
 
 def _draw_stroke(
-        bitmap,
-        stroke: Sequence[Tuple[int, int]],
-        tpl: Template,
-        center: Tuple[float, float],
-        rand
+    bitmap,
+    stroke: Sequence[Tuple[int, int]],
+    tpl: Template,
+    center: Tuple[float, float],
+    rand,
 ) -> None:
     dx = gauss(rand, 0, tpl.get_perturb_x_sigma())
     dy = gauss(rand, 0, tpl.get_perturb_y_sigma())
     theta = gauss(rand, 0, tpl.get_perturb_theta_sigma())
-    
+
     ink_depth_sigma = tpl.get_ink_depth_sigma()
     original_fill = tpl.get_fill()
     # 添加随机扰动
@@ -370,10 +358,27 @@ def _draw_stroke(
         # 如果 original_fill 是一个整数
         rand_fill = max(0, min(100, int(original_fill + ink_depth_rand)))
     elif isinstance(original_fill, tuple):
-        # 如果 original_fill 是一个三元组（假设是 RGB 值）
-        rand_fill = tuple(max(0, min(100, int(channel + ink_depth_rand))) for channel in original_fill)
-    # print('rand_fill',rand_fill)
-            
+        if len(original_fill) == 3:
+            # 如果 original_fill 是一个三元组（假设是 RGB 值）
+            rand_fill = tuple(
+                max(0, min(255, int(channel + ink_depth_rand)))
+                for channel in original_fill
+            )
+        elif len(original_fill) == 4:
+            # 如果 original_fill 是一个四元组（假设是 RGBA 值）
+            # 保持 Alpha 通道不变
+            rand_fill = tuple(
+                (
+                    max(0, min(255, int(channel + ink_depth_rand)))
+                    if i < 3
+                    else original_fill[3]
+                )
+                for i, channel in enumerate(original_fill)
+            )
+
+    # 打印结果以验证
+    # print('rand_fill', rand_fill)
+
     for x, y in stroke:
         new_x, new_y = _rotate(center, x, y, theta)
         new_x = round(new_x + dx)
@@ -384,16 +389,20 @@ def _draw_stroke(
 
 
 def _rotate(
-        center: Tuple[float, float], x: float, y: float, theta: float
+    center: Tuple[float, float], x: float, y: float, theta: float
 ) -> Tuple[float, float]:
     if theta == 0:
         return x, y
-    new_x = ((x - center[0]) * math.cos(theta)
-             + (y - center[1]) * math.sin(theta)
-             + center[0])
-    new_y = ((y - center[1]) * math.cos(theta)
-             - (x - center[0]) * math.sin(theta)
-             + center[1])
+    new_x = (
+        (x - center[0]) * math.cos(theta)
+        + (y - center[1]) * math.sin(theta)
+        + center[0]
+    )
+    new_y = (
+        (y - center[1]) * math.cos(theta)
+        - (x - center[0]) * math.sin(theta)
+        + center[1]
+    )
     return new_x, new_y
 
 
