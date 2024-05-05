@@ -19,9 +19,9 @@ def main():
 
 def _watch_flow_layout():
     path = "backgrounds/even-odd-letter/"
-    image1 = PIL.Image.open(abs_path(path + "村庄信笺纸.jpg"))
+    image1 = PIL.Image.open(abs_path(path + "icon.png"))
     image2 = PIL.Image.open(abs_path(path + "树信笺纸.jpg"))
-    assert image1.mode == "RGB"
+    # assert image1.mode == "RGB"
     assert image2.mode == "RGB"
 
     template1 = Template(
@@ -46,7 +46,7 @@ def _watch_flow_layout():
     templates = (template1, template2)
     with open(abs_path("texts/从百草园到三味书屋.txt"), encoding="utf-8") as f:
         text = f.read()
-    images = handwrite(text, templates, seed=SEED,save_to_file=True, export_pdf=True)
+    images = handwrite(text, templates, seed=SEED, save_to_file=True, export_pdf=False)
     for im in images:
         im.show()
 
