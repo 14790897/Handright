@@ -76,6 +76,7 @@ class NumericOrderedSet(collections.abc.Collection):
         returns True."""
         if item != self._privileged and item in self._set:
             return False
+        # set 用于 O(1) 判断像素是否已访问，重复添加时返回 False；array 按插入顺序记录像素坐标，以及可重复插入的分隔符 0xFFFFFFFF 3.5.2026
         self._set.add(item)
         self._array.append(item)
         return True
