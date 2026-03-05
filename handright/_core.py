@@ -298,7 +298,8 @@ def _extract_stroke(
     bitmap, start: Tuple[int, int], strokes, bbox: Tuple[int, int, int, int]
 ) -> None:
     """Helper function of _extract_strokes() which uses depth first search to
-    find the pixels of a glyph. 修改了传入的 strokes 参数"""
+    find the pixels of a glyph. 修改了传入的 strokes 参数
+    DFS算法 3.5.2026"""
     left, upper, right, lower = bbox
     stack = [
         start,
