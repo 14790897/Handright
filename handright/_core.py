@@ -299,7 +299,7 @@ def _extract_stroke(
 ) -> None:
     """Helper function of _extract_strokes() which uses depth first search to
     find the pixels of a glyph. 修改了传入的 strokes 参数
-    DFS算法 3.5.2026"""
+    使用栈实现DFS算法 实际上它只是需要找到连通的结点这个算法呢使用广度优先也是一样的，3.5.2026"""
     left, upper, right, lower = bbox
     stack = [
         start,
